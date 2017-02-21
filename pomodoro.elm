@@ -24,7 +24,7 @@ type alias Model =
 
 init : (Model, Cmd Msg)
 init =
-  (Model 25 00 True, Cmd.none)
+  (Model 25 0 True, Cmd.none)
 
 -- UPDATE
 
@@ -61,6 +61,7 @@ view model =
         ] ]
 
 
+
 -- SUBSCRIPTIONS
 
 subscriptions : Model -> Sub Msg
@@ -79,7 +80,11 @@ prettify model =
 
 countdown : Model -> Model
 countdown model = 
-  if model.seconds == 0 then
+  if model.minutes == 0 && model.seconds == 0
+  then
+    (Model 25 00 True)
+  else if model.seconds == 0
+  then
     { model |
       minutes = model.minutes - 1,
       seconds = 59
