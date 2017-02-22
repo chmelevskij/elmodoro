@@ -31,6 +31,7 @@ init =
 type Msg
   = Tick Time
     | Pause
+    | SetTime String
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -40,10 +41,16 @@ update msg model =
         ( model, Cmd.none )
       else
         (countdown model, Cmd.none)
+
     Pause ->
-      ({ model | paused = (not model.paused) }
-      , Cmd.none
-      )
+        ({ model | paused = not <| model.paused } , Cmd.none)
+
+    SetTime newTime ->
+      ( {model
+      | minutes = strToMins newTime
+      , seconds = 0
+      , paused = True} , Cmd.none)
+
 
 -- VIEW
 
@@ -58,7 +65,15 @@ view model =
         "Play"
       else
         "Pause"
-        ] ]
+        ]
+          , showStatus model
+          , input 
+          [ onInput SetTime
+          , disabled <| not <| model.paused
+          , type_ "number"
+          , min_ "0"
+          , max_ "60" ][]
+          ]
 
 
 
@@ -71,6 +86,12 @@ subscriptions model =
   else every second Tick
 
 -- HELPERS
+
+strToMins: String -> Float
+strToMins newTime =
+  String.toFloat newTime
+  |> Result.toMaybe 
+  |> Maybe.withDefault 25
 
 prettify : Model -> String
 prettify model = 
@@ -93,3 +114,20 @@ countdown model =
     { model |
       seconds = model.seconds - 1
     }
+
+
+showStatus : Model -> Html msg
+showStatus model =
+  let
+      (color, message) =
+        if model.minutes == 25 && model.seconds == 00
+        then
+          ("green", "Break")
+        else
+          ("red", "Pomodoro")
+  in
+      div [ style [("color", color)]] [ text message ]
+
+
+min_ val = Html.Attributes.min val
+max_ val = Html.Attributes.max val
